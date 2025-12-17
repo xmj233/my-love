@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>To You</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Outfit:wght@200;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #f77062;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #fff0f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 动态背景 */
+        .ambient-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(254, 214, 227, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(168, 230, 207, 0.6) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(220, 238, 255, 0.7) 0%, transparent 60%);
+            filter: blur(40px);
+            animation: bgBreath 15s ease-in-out infinite alternate;
+        }
+        @keyframes bgBreath { 0% { transform: scale(1); } 100% { transform: scale(1.1); } }
+
+        .noise-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 88%;
+            max-width: 420px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            opacity: 0; /* JS控制显示，避免闪烁 */
+            transition: opacity 1s ease;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            height: 80%; /* 默认高度 */
+        }
+
+        .letter-content {
+            flex-grow: 1;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #4a4a4a;
+            font-weight: 300;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .letter-content::-webkit-scrollbar { display: none; }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background-color: var(--primary-color);
+            margin-left: 2px;
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .glass-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, #ff9a9e, #fecfef, #a18cd1); opacity: 0.8;
+        }
+
+        .bottom-section { margin-top: 25px; text-align: center; }
+        .meta-info { font-size: 0.75rem; color: #8898aa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
+        .status-text { font-size: 0.9rem; color: #666; margin-bottom: 25px; min-height: 1.5em; font-family: 'Noto Serif SC', serif; }
+
+        .btn-main {
+            background: #2c2c2c; color: #fff; border: none; padding: 16px 48px;
+            font-size: 1rem; border-radius: 50px; cursor: pointer; font-weight: 500;
+            letter-spacing: 0.5px; box-shadow: 0 10px 20px rgba(44, 44, 44, 0.15);
+            transition: transform 0.2s, background 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .btn-main::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg); animation: shine 3s infinite;
+        }
+        @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
+        .btn-main:active { transform: scale(0.96); }
+
+        /* 计时器区域 */
+        .timer-container {
+            display: none; margin-top: 10px;
+            animation: fadeIn 1s forwards;
+        }
+        .timer-label { font-size: 0.8rem; color: #888; margin-bottom: 8px; letter-spacing: 2px; text-transform: uppercase; }
+        .timer-digits {
+            font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 200;
+            color: #2c3e50; font-variant-numeric: tabular-nums;
+        }
+
+        /* --- 接受后的状态 (CSS) --- */
+        body.is-accepted .glass-card {
+            background: rgba(255, 255, 255, 0.35); /* 更透 */
+            height: 60%; /* 缩小信纸 */
+        }
+        body.is-accepted .letter-content {
+            opacity: 0.7;
+        }
+        body.is-accepted .btn-main, 
+        body.is-accepted .status-text {
+            display: none; /* 彻底隐藏按钮 */
+        }
+        body.is-accepted .timer-container {
+            display: block; /* 显示计时器 */
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg"></div>
+    <div class="noise-overlay"></div>
+    <canvas id="loveCanvas"></canvas>
+
+    <div class="container" id="mainContainer">
+        <!-- 信纸 -->
+        <div class="glass-card">
+            <div class="letter-content" id="letterBox">
+                <span id="typewriter"></span><span class="cursor" id="cursor"></span>
+            </div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="bottom-section">
+            <div class="meta-info" id="metTime">CALCULATING DAYS...</div>
+            
+            <!-- 按钮区 -->
+            <div id="interactionArea">
+                <div class="status-text">Would you like to start a story?</div>
+                <button class="btn-main" id="acceptBtn">Yes, I Do</button>
+            </div>
+
+            <!-- 计时器区 -->
+            <div class="timer-container">
+                <div class="timer-label">Time in Love</div>
+                <div class="timer-digits" id="timerDisplay">00:00:00</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ================= 配置区域 =================
+    const config = {
+        startDate: "2023-01-01", // 你们相识的日期
+        letter: `亲爱的：\n\n如果代码是理性的逻辑，那你就是我唯一的感性BUG。\n\n我没法用算法预测未来，但我知道，只要有你在的每一帧，都是高清晰度的幸福。\n\n这封信很短，但我想给你的余生很长。\n\n点击确认，让我们的时间线收束在一起，好吗？`
+    };
+
+    const STORAGE_KEY = 'love_timer_start_date'; // 本地存储的Key
+
+    // ================= 核心逻辑 =================
+    
+    const dom = {
+        container: document.getElementById('mainContainer'),
+        typewriter: document.getElementById('typewriter'),
+        cursor: document.getElementById('cursor'),
+        metTime: document.getElementById('metTime'),
+        acceptBtn: document.getElementById('acceptBtn'),
+        timerDisplay: document.getElementById('timerDisplay'),
+        interactionArea: document.getElementById('interactionArea')
+    };
+
+    // 1. 相识时间计算
+    const initMetTime = () => {
+        const start = new Date(config.startDate);
+        const now = new Date();
+        const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+        dom.metTime.innerText = `WE MET ${diff} DAYS AGO`;
+    };
+
+    // 2. 计时器逻辑 (统一处理)
+    let timerInterval;
+    const startTimer = (startTimeStr) => {
+        const startTime = new Date(startTimeStr);
+        
+        const update = () => {
+            const now = new Date();
+            const diff = now - startTime;
+            if(diff < 0) return; // 避免时间倒流
+
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            const pad = n => n.toString().padStart(2, '0');
+            
+            dom.timerDisplay.innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+        };
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(update, 1000);
+        update();
+    };
+
+    // 3. 页面初始化状态判断 (关键修复)
+    const initPage = () => {
+        initMetTime();
+
+        const savedDate = localStorage.getItem(STORAGE_KEY);
+
+        if (savedDate) {
+            // A. 如果已经接受过：
+            // 1. 加上 body class，CSS会自动隐藏按钮、显示计时器
+            document.body.classList.add('is-accepted');
+            
+            // 2. 直接显示全部文字，不打字
+            dom.typewriter.innerHTML = config.letter.replace(/\n/g, '<br>');
+            dom.cursor.style.display = 'none';
+
+            // 3. 启动计时器
+            startTimer(savedDate);
+
+            // 4. 直接启动爱心特效
+            startHeartAnimation();
+
+            // 5. 显示容器
+            dom.container.style.opacity = 1;
+
+        } else {
+            // B. 如果是第一次访问：
+            dom.container.style.opacity = 1;
+            
+            // 延迟一点开始打字
+            setTimeout(() => {
+                let index = 0;
+                const type = () => {
+                    if (index < config.letter.length) {
+                        const char = config.letter.charAt(index);
+                        dom.typewriter.innerHTML += (char === '\n') ? '<br>' : char;
+                        index++;
+                        // 自动滚动
+                        const content = document.querySelector('.letter-content');
+                        content.scrollTop = content.scrollHeight;
+                        setTimeout(type, Math.random() * 50 + 50);
+                    } else {
+                        setTimeout(() => dom.cursor.style.display = 'none', 3000);
+                    }
+                };
+                type();
+            }, 800);
+        }
+    };
+
+    // 4. 按钮点击事件
+    dom.acceptBtn.addEventListener('click', () => {
+        // 记录当前时间
+        const now = new Date();
+        localStorage.setItem(STORAGE_KEY, now.toISOString());
+
+        // 界面切换过渡动画
+        dom.interactionArea.style.opacity = '0'; // 先渐隐按钮区
+        
+        setTimeout(() => {
+            document.body.classList.add('is-accepted'); // 切换CSS状态
+            startTimer(now);
+            startHeartAnimation();
+        }, 500);
+    });
+
+    // ================= Canvas 爱心特效 =================
+    const canvas = document.getElementById('loveCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, hearts = [];
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width * 2;
+        canvas.height = height * 2;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.scale(2, 2);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function drawHeart(x, y, size, opacity) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = "#ff6b81";
+        ctx.translate(x, y);
+        const topCurveHeight = size * 0.3;
+        ctx.moveTo(0, topCurveHeight);
+        ctx.bezierCurveTo(0, 0, -size / 2, 0, -size / 2, topCurveHeight);
+        ctx.bezierCurveTo(-size / 2, (size + topCurveHeight) / 2, 0, size, 0, size);
+        ctx.bezierCurveTo(0, size, size / 2, (size + topCurveHeight) / 2, size / 2, topCurveHeight);
+        ctx.bezierCurveTo(size / 2, 0, 0, 0, 0, topCurveHeight);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    class Heart {
+        constructor() { this.init(); }
+        init() {
+            this.x = Math.random() * width;
+            this.y = height + 10;
+            this.size = Math.random() * 10 + 10;
+            this.speed = Math.random() * 1.5 + 0.5;
+            this.opacity = Math.random() * 0.5 + 0.1;
+            this.wobble = Math.random() * Math.PI * 2;
+            this.wobbleSpeed = Math.random() * 0.05 + 0.02;
+        }
+        update() {
+            this.y -= this.speed;
+            this.wobble += this.wobbleSpeed;
+            this.x += Math.sin(this.wobble) * 0.5;
+            if(this.y < height * 0.6) this.opacity -= 0.005;
+            if (this.y < -50 || this.opacity <= 0) this.init();
+        }
+        draw() {
+            ctx.shadowColor = "rgba(255, 107, 129, 0.3)";
+            ctx.shadowBlur = 10;
+            drawHeart(this.x, this.y, this.size, this.opacity);
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    function startHeartAnimation() {
+        if(hearts.length > 0) return; // 避免重复启动
+        for(let i=0; i<35; i++) {
+            setTimeout(() => hearts.push(new Heart()), i * 150);
+        }
+        animate();
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        hearts.forEach(h => { h.update(); h.draw(); });
+        requestAnimationFrame(animate);
+    }
+
+    // 启动
+    initPage();
+
+</script>
+</body>
+</html>
