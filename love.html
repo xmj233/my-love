@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Outfit:wght@200;400;600&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --primary-color: #f77062;
@@ -29,15 +29,14 @@
             position: relative;
         }
 
-        /* 动态背景 */
         .ambient-bg {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 0;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(254, 214, 227, 0.8) 0%, transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(168, 230, 207, 0.6) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(220, 238, 255, 0.7) 0%, transparent 60%);
+            background:
+                    radial-gradient(circle at 10% 20%, rgba(254, 214, 227, 0.8) 0%, transparent 50%),
+                    radial-gradient(circle at 90% 80%, rgba(168, 230, 207, 0.6) 0%, transparent 50%),
+                    radial-gradient(circle at 50% 50%, rgba(220, 238, 255, 0.7) 0%, transparent 60%);
             filter: blur(40px);
             animation: bgBreath 15s ease-in-out infinite alternate;
         }
@@ -63,7 +62,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            opacity: 0; /* JS控制显示，避免闪烁 */
+            opacity: 0;
             transition: opacity 1s ease;
         }
 
@@ -80,7 +79,7 @@
             transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative;
             overflow: hidden;
-            height: 80%; /* 默认高度 */
+            height: 90%;
         }
 
         .letter-content {
@@ -112,7 +111,11 @@
             background: linear-gradient(90deg, #ff9a9e, #fecfef, #a18cd1); opacity: 0.8;
         }
 
-        .bottom-section { margin-top: 25px; text-align: center; }
+        .bottom-section {
+            margin-top: 25px;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
         .meta-info { font-size: 0.75rem; color: #8898aa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 15px; font-weight: 600; }
         .status-text { font-size: 0.9rem; color: #666; margin-bottom: 25px; min-height: 1.5em; font-family: 'Noto Serif SC', serif; }
 
@@ -131,7 +134,6 @@
         @keyframes shine { 0% { transform: translateX(-100%) rotate(45deg); } 100% { transform: translateX(100%) rotate(45deg); } }
         .btn-main:active { transform: scale(0.96); }
 
-        /* 计时器区域 */
         .timer-container {
             display: none; margin-top: 10px;
             animation: fadeIn 1s forwards;
@@ -141,70 +143,68 @@
             font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 200;
             color: #2c3e50; font-variant-numeric: tabular-nums;
         }
+        .start-time-display {
+            font-size: 0.75rem; color: #f77062; margin-top: 8px; opacity: 0.8;
+            font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;
+        }
 
-        /* --- 接受后的状态 (CSS) --- */
-        body.is-accepted .glass-card {
-            background: rgba(255, 255, 255, 0.35); /* 更透 */
-            height: 60%; /* 缩小信纸 */
-        }
-        body.is-accepted .letter-content {
-            opacity: 0.7;
-        }
-        body.is-accepted .btn-main, 
-        body.is-accepted .status-text {
-            display: none; /* 彻底隐藏按钮 */
-        }
-        body.is-accepted .timer-container {
-            display: block; /* 显示计时器 */
-        }
+        body.is-accepted .glass-card { background: rgba(255, 255, 255, 0.35); height: 70%; }
+        body.is-accepted .letter-content { opacity: 0.7; }
+        body.is-accepted .btn-main, body.is-accepted .status-text { display: none; }
+        body.is-accepted .timer-container { display: block; }
+        body.is-accepted .bottom-section { transform: translateY(-50px); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
     </style>
 </head>
 <body>
 
-    <div class="ambient-bg"></div>
-    <div class="noise-overlay"></div>
-    <canvas id="loveCanvas"></canvas>
+<div class="ambient-bg"></div>
+<div class="noise-overlay"></div>
+<canvas id="loveCanvas"></canvas>
 
-    <div class="container" id="mainContainer">
-        <!-- 信纸 -->
-        <div class="glass-card">
-            <div class="letter-content" id="letterBox">
-                <span id="typewriter"></span><span class="cursor" id="cursor"></span>
-            </div>
-        </div>
-
-        <!-- 底部 -->
-        <div class="bottom-section">
-            <div class="meta-info" id="metTime">CALCULATING DAYS...</div>
-            
-            <!-- 按钮区 -->
-            <div id="interactionArea">
-                <div class="status-text">Would you like to start a story?</div>
-                <button class="btn-main" id="acceptBtn">Yes, I Do</button>
-            </div>
-
-            <!-- 计时器区 -->
-            <div class="timer-container">
-                <div class="timer-label">Time in Love</div>
-                <div class="timer-digits" id="timerDisplay">00:00:00</div>
-            </div>
+<div class="container" id="mainContainer">
+    <div class="glass-card">
+        <div class="letter-content" id="letterBox">
+            <span id="typewriter"></span><span class="cursor" id="cursor"></span>
         </div>
     </div>
 
+    <div class="bottom-section">
+        <div class="meta-info" id="metTime">CALCULATING DAYS...</div>
+
+        <div id="interactionArea">
+            <div class="status-text">Would you like to start a story?</div>
+            <button class="btn-main" id="acceptBtn">Yes, I Do</button>
+        </div>
+
+        <div class="timer-container">
+            <div class="timer-label">Time in Love</div>
+            <div class="timer-digits" id="timerDisplay">00:00:00:00</div>
+            <div class="start-time-display" id="startTimeLabel"></div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // ================= 配置区域 =================
     const config = {
-        startDate: "2023-01-01", // 你们相识的日期
-        letter: `亲爱的：\n\n如果代码是理性的逻辑，那你就是我唯一的感性BUG。\n\n我没法用算法预测未来，但我知道，只要有你在的每一帧，都是高清晰度的幸福。\n\n这封信很短，但我想给你的余生很长。\n\n点击确认，让我们的时间线收束在一起，好吗？`
+        startDate: "2025-10-05",
+        loveStartDate: "",
+        letter: `
+        我的小公主（李格格）：
+        这段时间和你的相处，是我最近最开心的日子。
+        还记得那天晚上我有些唐突地想牵你的手，你跟我说你需要的是一份稳定长久的关系，需要正式的仪式感。那番话让我回去想了很久，也让我更加确定，你就是那个值得我认真对待、好好珍惜的女孩。
+        在我眼里，你就是那个让我忍不住想靠近、想照顾的人。你说你累的时候想当公主，那我就愿意做那个一直为你加油、帮你分担琐碎的人。
+        我不只想在微信上陪你聊天，不只想在周末往返去找你。我想参与你生活的每一天，想看你练舞的样子，想和你一起去逛超市，想和你一起去看日出，想和你一起把未来的日子过得井井有条。
+
+        李格格，做我的女朋友吧！
+        让我牵着你的手，不是一时兴起，而是一直走下去。
+
+        你的徐梦蛟`
     };
 
-    const STORAGE_KEY = 'love_timer_start_date'; // 本地存储的Key
+    const STORAGE_KEY = 'love_timer_start_date';
 
-    // ================= 核心逻辑 =================
-    
     const dom = {
         container: document.getElementById('mainContainer'),
         typewriter: document.getElementById('typewriter'),
@@ -212,10 +212,10 @@
         metTime: document.getElementById('metTime'),
         acceptBtn: document.getElementById('acceptBtn'),
         timerDisplay: document.getElementById('timerDisplay'),
+        startTimeLabel: document.getElementById('startTimeLabel'),
         interactionArea: document.getElementById('interactionArea')
     };
 
-    // 1. 相识时间计算
     const initMetTime = () => {
         const start = new Date(config.startDate);
         const now = new Date();
@@ -223,58 +223,51 @@
         dom.metTime.innerText = `WE MET ${diff} DAYS AGO`;
     };
 
-    // 2. 计时器逻辑 (统一处理)
+    const formatDate = (date) => {
+        const d = new Date(date);
+        return d.toLocaleString('zh-CN', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+    };
+
     let timerInterval;
     const startTimer = (startTimeStr) => {
         const startTime = new Date(startTimeStr);
-        
+        dom.startTimeLabel.innerText = `Since: ${formatDate(startTimeStr)}`;
+
         const update = () => {
             const now = new Date();
             const diff = now - startTime;
-            if(diff < 0) return; // 避免时间倒流
+            if(diff < 0) return;
 
-            const h = Math.floor(diff / (1000 * 60 * 60));
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / (1000 * 60)) % 60);
             const s = Math.floor((diff / 1000) % 60);
             const pad = n => n.toString().padStart(2, '0');
-            
-            dom.timerDisplay.innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            dom.timerDisplay.innerText = `${d}:${pad(h)}:${pad(m)}:${pad(s)}`;
         };
-        
+
         clearInterval(timerInterval);
         timerInterval = setInterval(update, 1000);
         update();
     };
 
-    // 3. 页面初始化状态判断 (关键修复)
     const initPage = () => {
         initMetTime();
 
-        const savedDate = localStorage.getItem(STORAGE_KEY);
+        const finalStartDate = config.loveStartDate || localStorage.getItem(STORAGE_KEY);
 
-        if (savedDate) {
-            // A. 如果已经接受过：
-            // 1. 加上 body class，CSS会自动隐藏按钮、显示计时器
+        if (finalStartDate) {
             document.body.classList.add('is-accepted');
-            
-            // 2. 直接显示全部文字，不打字
             dom.typewriter.innerHTML = config.letter.replace(/\n/g, '<br>');
             dom.cursor.style.display = 'none';
-
-            // 3. 启动计时器
-            startTimer(savedDate);
-
-            // 4. 直接启动爱心特效
+            startTimer(finalStartDate);
             startHeartAnimation();
-
-            // 5. 显示容器
             dom.container.style.opacity = 1;
-
         } else {
-            // B. 如果是第一次访问：
             dom.container.style.opacity = 1;
-            
-            // 延迟一点开始打字
             setTimeout(() => {
                 let index = 0;
                 const type = () => {
@@ -282,7 +275,6 @@
                         const char = config.letter.charAt(index);
                         dom.typewriter.innerHTML += (char === '\n') ? '<br>' : char;
                         index++;
-                        // 自动滚动
                         const content = document.querySelector('.letter-content');
                         content.scrollTop = content.scrollHeight;
                         setTimeout(type, Math.random() * 50 + 50);
@@ -295,23 +287,20 @@
         }
     };
 
-    // 4. 按钮点击事件
     dom.acceptBtn.addEventListener('click', () => {
-        // 记录当前时间
         const now = new Date();
-        localStorage.setItem(STORAGE_KEY, now.toISOString());
+        const isoTime = now.toISOString();
+        localStorage.setItem(STORAGE_KEY, isoTime);
+        console.log("SHE SAID YES! Time:", isoTime);
 
-        // 界面切换过渡动画
-        dom.interactionArea.style.opacity = '0'; // 先渐隐按钮区
-        
+        dom.interactionArea.style.opacity = '0';
         setTimeout(() => {
-            document.body.classList.add('is-accepted'); // 切换CSS状态
-            startTimer(now);
+            document.body.classList.add('is-accepted');
+            startTimer(isoTime);
             startHeartAnimation();
         }, 500);
     });
 
-    // ================= Canvas 爱心特效 =================
     const canvas = document.getElementById('loveCanvas');
     const ctx = canvas.getContext('2d');
     let width, height, hearts = [];
@@ -371,7 +360,7 @@
     }
 
     function startHeartAnimation() {
-        if(hearts.length > 0) return; // 避免重复启动
+        if(hearts.length > 0) return;
         for(let i=0; i<35; i++) {
             setTimeout(() => hearts.push(new Heart()), i * 150);
         }
@@ -384,7 +373,6 @@
         requestAnimationFrame(animate);
     }
 
-    // 启动
     initPage();
 
 </script>
